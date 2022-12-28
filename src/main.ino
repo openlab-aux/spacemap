@@ -28,16 +28,16 @@ void enumerate_leds(int delay_time) {
     for (int i = 0; i < PixelCount; i++) {
         strip.ClearTo(RgbColor(0, 0, 0));
         strip.Show();
-        delay(delay_time);
+        delay(delay_time/4);
         strip.SetPixelColor(spaces[i].led, RgbColor(255, 0, 0));
         strip.Show();
-        delay(delay_time);
+        delay(delay_time/4);
         strip.SetPixelColor(spaces[i].led, RgbColor(0, 255, 0));
         strip.Show();
-        delay(delay_time);
+        delay(delay_time/4);
         strip.SetPixelColor(spaces[i].led, RgbColor(0, 0, 255));
         strip.Show();
-        delay(delay_time);
+        delay(delay_time/4);
     }
 }
 
