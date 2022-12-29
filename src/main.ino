@@ -73,7 +73,7 @@ void setup() {
   spaces[6].led = 6;
   spaces[6].name = "not on api: HSPSH";
   spaces[7].led = 7;
-  spaces[7].name = "not on api: C3SBG";
+  spaces[7].name = "Salzburg";
   spaces[8].led = 8;
   spaces[8].name = "DevLoL";
   spaces[9].led = 9;
@@ -97,7 +97,7 @@ void setup() {
   spaces[18].led = 18;
   spaces[18].name = "Nerdberg";
   spaces[19].led = 19;
-  spaces[19].name = "not on api: Backspace";
+  spaces[19].name = "backspace";
   spaces[20].led = 20;
   spaces[20].name = "hackzogtum";
   spaces[21].led = 21;
@@ -105,11 +105,11 @@ void setup() {
   spaces[22].led = 22;
   spaces[22].name = "Eigenbaukombinat Halle e.V.";
   spaces[23].led = 23;
-  spaces[23].name = "Netz39"; // vermutlich nicht in dir, aber hat spaceapi: https://spaceapi.n39.eu/json
+  spaces[23].name = "Netz39";
   spaces[24].led = 24;
   spaces[24].name = "Stratum 0";
   spaces[25].led = 25;
-  spaces[25].name = "not on api, hacklabor schwerin";   // hacklabor schwerin, keine API? hacklabor.de
+  spaces[25].name = "Hacklabor";
   spaces[26].led = 26;
   spaces[26].name = "coredump";
   spaces[27].led = 27;
@@ -175,6 +175,7 @@ void setup() {
 void update_leds(){
     for (uint i = 0; i < PixelCount; i++) {
       if (spaces[i].status == SpaceStatus::S_OPEN) {
+        // red and green are swapped for our PL9823 leds :)
         strip.SetPixelColor(spaces[i].led, RgbColor(21, 0, 0));
       } else if(spaces[i].status == SpaceStatus::S_CLOSED) {
         strip.SetPixelColor(spaces[i].led, RgbColor(0, 24, 0));
@@ -194,15 +195,15 @@ void loop() {
     // configure server and url
     client.setInsecure();
     HTTPClient http;
-    http.begin(client, F("https://api.spaceapi.io/"));
+    http.begin(client, F("https://spaceapi.ccc.de/api/spaces"));
     http.useHTTP10(true); // important for chunking and stream reading
     http.GET();
     Stream& payload = http.getStream();
     StaticJsonDocument<128> filter;
     filter["url"] = true;
-    filter["data"]["space"] = true;
-    filter["data"]["state"]["open"] = true;
-    filter["data"]["state"]["lastchange"] = true;
+    filter["space"] = true;
+    filter["state"]["open"] = true;
+    filter["state"]["lastchange"] = true;
     DynamicJsonDocument doc(4096);
     Serial.println(F("Parsing JSON"));
     payload.find("["); // should actually be byte 0 of the response stream
@@ -214,14 +215,14 @@ void loop() {
         }
         // if space is in known_spaces, update status
         for (int i = 0; i < PixelCount; i++) {
-          if (spaces[i].name == doc["data"]["space"].as<String>()) {
-            Serial.print(doc["data"]["space"].as<String>());
+          if (spaces[i].name == doc["space"].as<String>()) {
+            Serial.print(doc["space"].as<String>());
             Serial.print(F(": "));
-            Serial.println(doc["data"]["state"]["open"].as<String>());
-            spaces[i].lastChange = doc["data"]["state"]["lastchange"].as<int>();
-            if (doc["data"]["state"]["open"].as<String>() == "true") {
+            Serial.println(doc["state"]["open"].as<String>());
+            //spaces[i].lastChange = doc["state"]["lastchange"].as<int>();
+            if (doc["state"]["open"].as<String>() == "true") {
                 spaces[i].status = SpaceStatus::S_OPEN;
-            } else if (doc["data"]["state"]["open"].as<String>() == "false") {
+            } else if (doc["state"]["open"].as<String>() == "false") {
                 spaces[i].status = SpaceStatus::S_CLOSED;
             } else {
                 spaces[i].status = SpaceStatus::S_UNKNOWN;
